@@ -1,0 +1,37 @@
+//Trương Anh Tuấn 220616
+package quanlyhinhtron;
+
+public class circle {
+	private double radius;
+    private String color;
+
+    public circle(double radius, String color) {
+        this.radius = radius;
+        this.color = color;
+    }
+
+    public double getRadius() {
+        return this.radius;
+    }
+
+    public void setRadius(double radius) {
+        this.radius = radius;
+    }
+
+    public String getColor() {
+        return this.color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public double getArea() {
+        return Math.PI * radius * radius;
+    }
+
+    @Override
+    public String toString() {
+        return "Circle(radius: " + radius + ", color: " + color + ", area: " + getArea() + ")";
+    }
+}

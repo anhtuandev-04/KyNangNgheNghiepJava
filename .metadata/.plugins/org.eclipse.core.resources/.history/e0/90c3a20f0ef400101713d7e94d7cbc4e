@@ -1,0 +1,204 @@
+package Interface;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import Proccess.PublisherDAL;
+
+public class frmPublisher extends JFrame {
+    PublisherDAL pubDAL = new PublisherDAL();
+    JTable tblPub;
+    DefaultTableModel model;
+    JTextField txtCode, txtName, txtAddr, txtPhone;
+    JButton btnPrev, btnNext, btnAdd, btnEdit, btnDelete, btnSave, btnSearch, btnExit;
+    JLabel lblStatus;
+    boolean isEdit = false;
+
+    public frmPublisher() {
+        setTitle("Quản Lý Nhà Xuất Bản");
+        setSize(850, 680); // Tăng chiều cao để cân đối
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        //KHUNG THÔNG TIN CHI TIẾT (BÊN TRÁI TRÊN) 
+        JPanel pDetail = new JPanel(null);
+        pDetail.setBorder(BorderFactory.createTitledBorder("Thông tin chi tiết"));
+        pDetail.setBounds(20, 10, 662, 270);
+        getContentPane().add(pDetail);
+
+        JLabel l1 = new JLabel("Mã NXB:"); l1.setBounds(89, 84, 80, 25); pDetail.add(l1);
+        txtCode = new JTextField(); txtCode.setBounds(169, 84, 391, 25); pDetail.add(txtCode);
+
+        JLabel l2 = new JLabel("Tên NXB:"); l2.setBounds(89, 119, 80, 25); pDetail.add(l2);
+        txtName = new JTextField(); txtName.setBounds(169, 119, 391, 25); pDetail.add(txtName);
+
+        JLabel l3 = new JLabel("Địa chỉ:"); l3.setBounds(89, 154, 80, 25); pDetail.add(l3);
+        txtAddr = new JTextField(); txtAddr.setBounds(169, 154, 391, 25); pDetail.add(txtAddr);
+
+        JLabel l4 = new JLabel("Điện thoại:"); l4.setBounds(89, 189, 80, 25); pDetail.add(l4);
+        txtPhone = new JTextField(); txtPhone.setBounds(169, 189, 391, 25); pDetail.add(txtPhone);
+
+        // PHÂN TRANG NẰM TRONG CHI TIẾT 
+        btnPrev = new JButton("Về trước");
+        btnPrev.setBounds(169, 229, 110, 30);
+        pDetail.add(btnPrev);
+
+        lblStatus = new JLabel("0 / 0");
+        lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
+        lblStatus.setFont(new Font("Tahoma", Font.BOLD, 13));
+        lblStatus.setBounds(289, 229, 60, 30);
+        pDetail.add(lblStatus);
+
+        btnNext = new JButton("Về sau");
+        btnNext.setBounds(359, 229, 110, 30);
+        pDetail.add(btnNext);
+
+        // KHUNG THAO TÁC (BÊN PHẢI TRÊN) 
+        JPanel pAction = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15));
+        pAction.setBorder(BorderFactory.createTitledBorder("Thao tác"));
+        pAction.setBounds(692, 10, 118, 270);
+        getContentPane().add(pAction);
+
+        // Thiết lập kích thước nút thống nhất trong khung thao tác
+        Dimension btnSize = new Dimension(100, 35);
+        btnAdd = new JButton("Thêm"); btnAdd.setPreferredSize(btnSize); pAction.add(btnAdd);
+        btnEdit = new JButton("Sửa"); btnEdit.setPreferredSize(btnSize); pAction.add(btnEdit);
+        btnDelete = new JButton("Xóa"); btnDelete.setPreferredSize(btnSize); pAction.add(btnDelete);
+        btnSave = new JButton("Lưu"); btnSave.setPreferredSize(btnSize); pAction.add(btnSave);
+
+        // KHUNG DANH SÁCH (DƯỚI)
+        JPanel pTable = new JPanel(new BorderLayout());
+        pTable.setBorder(BorderFactory.createTitledBorder("Danh sách nhà xuất bản"));
+        model = new DefaultTableModel(new String[]{"Mã NXB", "Tên NXB", "Địa chỉ", "Điện thoại"}, 0);
+        tblPub = new JTable(model);
+        pTable.add(new JScrollPane(tblPub));
+        pTable.setBounds(10, 304, 790, 280);
+        getContentPane().add(pTable);
+
+        // TÌM KIẾM & THOÁT (DƯỚI CÙNG) 
+        btnSearch = new JButton("Tìm Kiếm");
+        btnSearch.setBounds(20, 585, 130, 35);
+        getContentPane().add(btnSearch);
+
+        btnExit = new JButton("Thoát");
+        btnExit.setBounds(680, 585, 130, 35);
+        getContentPane().add(btnExit);
+
+        // (Dùng lại đường dẫn của bạn) 
+        try {
+            String path = "D:\\JavaNangCao\\QLTV\\icons";
+            btnPrev.setIcon(new ImageIcon(path + "left.png"));
+            btnNext.setIcon(new ImageIcon(path + "right.png"));
+            
+                    // TIÊU ĐỀ 
+                    JLabel lblTitle = new JLabel("HỆ THỐNG QUẢN LÝ NHÀ XUẤT BẢN");
+                    lblTitle.setBounds(10, 23, 643, 40);
+                    pDetail.add(lblTitle);
+                    lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
+                    lblTitle.setFont(new Font("Tahoma", Font.BOLD, 22));
+                    lblTitle.setForeground(Color.BLUE);
+            btnAdd.setIcon(new ImageIcon(path + "plus.png"));
+            btnEdit.setIcon(new ImageIcon(path + "pen.png"));
+            btnDelete.setIcon(new ImageIcon(path + "remove.png"));
+            btnSave.setIcon(new ImageIcon(path + "diskette.png"));
+            btnSearch.setIcon(new ImageIcon(path + "search.png"));
+            btnExit.setIcon(new ImageIcon(path + "logout.png"));
+        } catch (Exception e) { System.out.println("Lỗi load icon!"); 
+        }
+
+        // LOGIC 
+        loadData();
+        setLock(true);
+        addEvents();
+    }
+
+    private void addEvents() {
+        tblPub.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int row = tblPub.getSelectedRow();
+                if(row >= 0) { displayDetail(row); updateRecordStatus(); 
+                }
+            }
+        });
+
+        btnPrev.addActionListener(e -> {
+            int row = tblPub.getSelectedRow();
+            if (row > 0) { tblPub.setRowSelectionInterval(row - 1, row - 1); displayDetail(row - 1); 
+            updateRecordStatus(); 
+            }
+        });
+
+        btnNext.addActionListener(e -> {
+            int row = tblPub.getSelectedRow();
+            if (row < tblPub.getRowCount() - 1) { tblPub.setRowSelectionInterval(row + 1, row + 1); 
+            displayDetail(row + 1); updateRecordStatus(); 
+            }
+        });
+
+        btnAdd.addActionListener(e -> { isEdit = false; setLock(false); clearText(); txtCode.requestFocus(); });
+        btnEdit.addActionListener(e -> { if(!txtCode.getText().isEmpty()){ isEdit = true; 
+        setLock(false); txtCode.setEnabled(false); 
+        } 
+        });
+
+        btnSave.addActionListener(e -> {
+            try {
+                if (isEdit) pubDAL.update(txtCode.getText(), txtName.getText(), 
+                		txtAddr.getText(), txtPhone.getText());
+                else pubDAL.insert(txtCode.getText(), txtName.getText(), txtAddr.getText(), txtPhone.getText());
+                loadData(); setLock(true); JOptionPane.showMessageDialog(this, "Thành công!");
+            } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage()); 
+            }
+        });
+
+        btnDelete.addActionListener(e -> {
+            String c = txtCode.getText();
+            if(!c.isEmpty() && JOptionPane.showConfirmDialog(this, "Xóa NXB này?", "Cảnh báo", 0) == 0) {
+                pubDAL.delete(c); loadData(); clearText();
+            }
+        });
+        
+        btnSearch.addActionListener(e -> new frmSearch().setVisible(true));
+        btnExit.addActionListener(e -> System.exit(0));
+    }
+
+    private void updateRecordStatus() {
+        int total = tblPub.getRowCount();
+        int current = tblPub.getSelectedRow();
+        lblStatus.setText(total == 0 ? "0 / 0" : (current + 1) + " / " + total);
+    }
+
+    private void loadData() {
+        try {
+            model.setRowCount(0);
+            ResultSet rs = pubDAL.getAll();
+            while(rs.next()) model.addRow(new Object[]{rs.getString(1), 
+            		rs.getString(2), rs.getString(3), rs.getString(4)});
+            updateRecordStatus();
+        } catch (Exception e) { e.printStackTrace(); 
+        }
+    }
+
+    private void displayDetail(int row) {
+        txtCode.setText(tblPub.getValueAt(row, 0).toString());
+        txtName.setText(tblPub.getValueAt(row, 1).toString());
+        txtAddr.setText(tblPub.getValueAt(row, 2).toString());
+        txtPhone.setText(tblPub.getValueAt(row, 3).toString());
+    }
+
+    private void setLock(boolean lock) {
+        txtCode.setEnabled(!lock); txtName.setEnabled(!lock);
+        txtAddr.setEnabled(!lock); txtPhone.setEnabled(!lock);
+        btnSave.setEnabled(!lock); btnAdd.setEnabled(lock); 
+        btnEdit.setEnabled(lock); btnDelete.setEnabled(lock);
+    }
+
+    private void clearText() { txtCode.setText(""); txtName.setText(""); 
+    txtAddr.setText(""); txtPhone.setText(""); }
+
+    public static void main(String[] args) { new frmPublisher().setVisible(true); 
+    }
+}

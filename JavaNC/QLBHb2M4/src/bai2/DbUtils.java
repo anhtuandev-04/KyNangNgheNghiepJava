@@ -1,0 +1,19 @@
+package bai2;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class DbUtils {
+    public static Connection getConnection() {
+        Connection conn = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            String url = "jdbc:mysql://localhost:3306/mod4_bai2";
+            conn = DriverManager.getConnection(url, "root", "");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return conn;
+    }
+}

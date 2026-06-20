@@ -1,0 +1,41 @@
+//Trương Anh Tuấn 220616
+package quanlyhinhtron;
+import java.util.Scanner;
+
+public class testcircle {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in); 
+        
+        System.out.println("* 1. Tạo đối tượng Hình tròn (Circle)*");
+        
+        System.out.print("Vui lòng nhập Bán kính (Radius) [double]: ");
+        String inputRadiusString = scanner.nextLine(); 
+
+        System.out.print("Vui lòng nhập Màu sắc (Color) [String]: ");
+        String inputColor = scanner.nextLine(); 
+        
+        circle usercircle = new circle(inputRadiusString, inputColor); 
+
+        System.out.println("\nThông tin Hình tròn của bạn:");
+        System.out.println(usercircle.toString());
+        
+        System.out.println("\n* 2. Tạo đối tượng Hình trụ (Cylinder)*");
+        
+        System.out.print("Vui lòng nhập Chiều cao (Height) [double]: ");
+        
+        double inputHeight = 1.0; 
+        if (scanner.hasNextDouble()) {
+             inputHeight = scanner.nextDouble();
+        } else {
+             scanner.next(); 
+             System.out.println("Input Height không phải số hợp lệ. Đặt Height mặc định là 1.0.");
+        }
+
+        cylinder usercylinder = new cylinder(usercircle.getRadius(), usercircle.getColor(), inputHeight);
+
+        System.out.println("\nThông tin Hình trụ của bạn:");
+        System.out.println(usercylinder.toString());
+
+        scanner.close(); 
+    }
+}

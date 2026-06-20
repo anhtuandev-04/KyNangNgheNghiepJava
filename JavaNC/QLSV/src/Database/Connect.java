@@ -1,0 +1,47 @@
+package Database;
+import java.sql.*;
+import javax.swing.JOptionPane;
+
+public class Connect {
+    // Biến conn dùng chung để các lớp khác gọi tới
+    public Connection conn = null;
+
+    // 1. Phương thức thực hiện kết nối tới MySQL (XAMPP)
+    public void connectSQL() throws SQLException {
+        try {
+            // Driver cho MySQL
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            
+            // URL kết nối (QLSV là tên database bạn tạo trong phpMyAdmin)
+            String url = "jdbc:mysql://localhost:3306/qlsv";
+            String user = "root"; // Mặc định XAMPP
+            String pass = "";     // Mặc định XAMPP để trống
+            
+            conn = DriverManager.getConnection(url, user, pass);
+        } catch (ClassNotFoundException e) {
+            JOptionPane.showMessageDialog(null, "Không tìm thấy Driver MySQL!", "Lỗi", 0);
+        }
+    }
+
+    // 2. Phương thức dùng để TRUY VẤN dữ liệu (SELECT)
+    public ResultSet LoadData(String sql) {
+        ResultSet result = null;
+        try {
+            Statement statement = conn.createStatement();
+            return statement.executeQuery(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // 3. Phương thức dùng để THAY ĐỔI dữ liệu (INSERT, UPDATE, DELETE)
+    public void UpdateData(String sql) {
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(sql);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Lỗi thực thi SQL: " + e.getMessage());
+        }
+    }
+}

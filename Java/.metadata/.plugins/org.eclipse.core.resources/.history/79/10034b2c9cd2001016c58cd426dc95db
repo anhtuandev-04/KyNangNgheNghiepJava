@@ -1,0 +1,47 @@
+// Trương Anh Tuấn 220616
+package person;
+
+public class staff extends person {
+    // Thuộc tính
+    private String school;
+    private double salary; // Đã sửa từ 'int' sang 'double' để hợp lý hơn với tiền lương
+
+    // Constructor
+    public staff(String name, String address, String school, double salary) {
+        super(name, address); // Gọi constructor của Person
+        this.school = school;
+        this.salary = salary;
+    }
+
+    // Getters
+    public String getSchool() {
+        return school;
+    }
+
+    public double getSalary() {
+        return salary;
+    }
+
+    // Setters
+    public void setSchool(String school) {
+        this.school = school;
+    }
+
+    public void setSalary(double salary) {
+        this.salary = salary;
+    }
+
+    // Phương thức bổ sung: Tăng lương theo tỷ lệ phần trăm
+    public double upToSalary(int percent) {
+        this.salary = this.salary * (1 + (double)percent / 100);
+        return this.salary;
+    }
+
+    // Phương thức toString()
+    @Override
+    public String toString() {
+        return "Staff[" + super.toString() + 
+               ", school=" + school + 
+               ", salary=" + String.format("%,.2f", salary) + "]";
+    }
+}

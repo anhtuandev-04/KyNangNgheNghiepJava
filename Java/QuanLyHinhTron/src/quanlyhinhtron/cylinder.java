@@ -1,0 +1,32 @@
+//Trương Anh Tuấn 220616
+package quanlyhinhtron;
+
+public class cylinder extends circle {
+	private double height;
+
+    public cylinder(double radius, String color, double height) {
+        super(radius, color);
+        this.height = height;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
+
+    public double getVolume() {
+        return super.getArea() * this.height;
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("Cylinder(radius: %.2f, color: %s, height: %.2f, volume: %.2f)",
+                getRadius(), 
+                getColor(),
+                height,
+                getVolume());
+    }
+}

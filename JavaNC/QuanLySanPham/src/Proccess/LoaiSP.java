@@ -1,0 +1,45 @@
+package Proccess;
+import java.sql.*;
+import Database.Connect;
+
+public class LoaiSP {
+    public Connect cn = new Connect();
+
+    // Lấy toàn bộ danh sách loại SP
+    public ResultSet ShowLoaiSP() throws SQLException {
+        cn.connectSQL();
+        return cn.LoadData("SELECT * FROM LoaiSP");
+    }
+
+    // Lấy 1 loại SP theo mã
+    public ResultSet ShowLoaiSP(String ml) throws SQLException {
+        cn.connectSQL();
+        return cn.LoadData("SELECT * FROM LoaiSP WHERE Maloai='" + ml + "'");
+    }
+
+    // Thêm mới
+    public void InsertData(String ml, String tl) throws SQLException {
+        String sql = "INSERT INTO LoaiSP VALUES('" + ml + "','" + tl + "')";
+        cn.UpdateData(sql);
+    }
+
+    // Cập nhật
+    public void EditData(String ml, String tl) throws SQLException {
+        String sql = "UPDATE LoaiSP SET Tenloai='" + tl + "' WHERE Maloai='" + ml + "'";
+        cn.UpdateData(sql);
+    }
+
+    // Xóa
+    public void DeleteData(String ml) throws SQLException {
+        cn.UpdateData("DELETE FROM LoaiSP WHERE Maloai='" + ml + "'");
+    }
+    
+    // Thêm hàm này vào lớp LoaiSP trong package Proccess
+    public ResultSet ShowSPTheoloai(String ml) throws SQLException {            
+        cn.connectSQL();
+        String sql = "SELECT MaSP, TenSP, Dongia, Tenloai " +
+                     "FROM Sanpham S, LoaiSP L " +
+                     "WHERE L.Maloai=S.Maloai AND L.Maloai='" + ml + "'";         
+        return cn.LoadData(sql); 
+    }
+}

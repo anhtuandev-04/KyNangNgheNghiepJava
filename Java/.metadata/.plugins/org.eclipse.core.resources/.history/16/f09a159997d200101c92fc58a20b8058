@@ -1,0 +1,23 @@
+//Trương Anh Tuấn 220616
+package quanlyhinhtron;
+import java.util.ArrayList;
+
+	public class testcircle { 
+	    public static void main(String[] args) {
+	        System.out.println("---------- KIỂM TRA ĐA HÌNH VÀ TÍNH DIỆN TÍCH (getArea) ----------");
+	        ArrayList<Circle> shapes = new ArrayList<>();
+	     
+	        shapes.add(new Circle(3.5, "Indigo"));
+	        shapes.add(new Cylinder(2.5, "Teal", 5.0));
+	        shapes.add(new Circle(1.0, "Black"));
+
+	        System.out.println("\n--- DUYỆT DANH SÁCH HÌNH TRÒN/HÌNH TRỤ ---");
+	        System.out.println("STT | Chi tiết đối tượng\n");
+	        int index = 1;
+	        for (Circle shape : shapes) {
+	            System.out.println(index++ + ". " + shape.toString()); 
+	            
+	            System.out.println("   --> Diện tích đáy (getArea()): " + String.format("%.2f", shape.getArea()) + "\n");
+	        }
+	    }
+	}

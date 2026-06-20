@@ -1,0 +1,7 @@
+INDEX VERSION 1.134+D:\Tuan_DH22TIN02_220616\.metadata\.plugins\org.eclipse.jdt.core
+2301095917.index
+1865797976.index
+4095152488.index
+4263567227.index
+1277966720.index
+4222298462.index

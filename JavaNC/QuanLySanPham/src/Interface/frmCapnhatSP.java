@@ -1,0 +1,168 @@
+package Interface; 
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import Proccess.Sanpham;
+
+public class frmCapnhatSP extends JFrame {
+    private final Sanpham sp = new Sanpham();
+    private boolean cothem = true;
+    private DefaultTableModel tableModel = new DefaultTableModel();
+    
+    private JTextField txtMaSP, txtTenSP, txtGiaban, txtTenloai;
+    private JComboBox<String> cboLoaiSP;
+    private JTable jTableSP;
+    private JButton btThem, btXoa, btSua, btLuu, btKLuu, btThoat;
+
+    public frmCapnhatSP() throws SQLException {
+        setTitle("Cập Nhật Sản Phẩm");
+        setSize(700, 500);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        getContentPane().setLayout(null);
+        setLocationRelativeTo(null);
+
+        //  GIAO DIỆN 
+        JLabel l1 = new JLabel("Mã SP:"); 
+        l1.setBounds(30, 58, 60, 25); 
+        getContentPane().add(l1);
+        txtMaSP = new JTextField(); 
+        txtMaSP.setBounds(100, 58, 100, 25); 
+        getContentPane().add(txtMaSP);
+
+        JLabel l2 = new JLabel("Tên SP:"); 
+        l2.setBounds(230, 58, 60, 25); 
+        getContentPane().add(l2);
+        txtTenSP = new JTextField(); 
+        txtTenSP.setBounds(290, 58, 270, 25); 
+        getContentPane().add(txtTenSP);
+
+        JLabel l3 = new JLabel("Giá bán:"); 
+        l3.setBounds(30, 94, 60, 25); 
+        getContentPane().add(l3);
+        txtGiaban = new JTextField(); 
+        txtGiaban.setBounds(100, 94, 100, 25); 
+        getContentPane().add(txtGiaban);
+
+        JLabel l4 = new JLabel("Loại SP:"); 
+        l4.setBounds(230, 94, 60, 25); 
+        getContentPane().add(l4);
+        cboLoaiSP = new JComboBox<>(); 
+        cboLoaiSP.setBounds(290, 94, 100, 25); 
+        getContentPane().add(cboLoaiSP);
+        txtTenloai = new JTextField(); 
+        txtTenloai.setBounds(400, 94, 160, 25); 
+        txtTenloai.setEnabled(false); 
+        getContentPane().add(txtTenloai);
+
+        btThem = new JButton("Thêm"); 
+        btThem.setBounds(30, 140, 80, 30); 
+        getContentPane().add(btThem);
+        btXoa = new JButton("Xóa"); 
+        btXoa.setBounds(120, 140, 80, 30); 
+        getContentPane().add(btXoa);
+        btSua = new JButton("Sửa"); 
+        btSua.setBounds(210, 140, 80, 30); 
+        getContentPane().add(btSua);
+        btLuu = new JButton("Lưu"); 
+        btLuu.setBounds(300, 140, 80, 30); 
+        getContentPane().add(btLuu);
+        btKLuu = new JButton("K.Lưu"); 
+        btKLuu.setBounds(390, 140, 80, 30); 
+        getContentPane().add(btKLuu);
+        btThoat = new JButton("Thoát"); 
+        btThoat.setBounds(480, 140, 80, 30); 
+        getContentPane().add(btThoat);
+
+        jTableSP = new JTable(tableModel);
+        tableModel.setColumnIdentifiers(new String[]{"Mã SP", "Tên sản phẩm", "Giá bán", "Loại"});
+        JScrollPane sc = new JScrollPane(jTableSP);
+        sc.setBounds(20, 189, 640, 250); getContentPane().add(sc);
+
+        // SỰ KIỆN 
+        ShowDataCombo();
+        ShowData();
+        setKhoa(true);
+        setButton(true);
+
+        btThem.addActionListener(e -> { setNull(); setKhoa(false); setButton(false); cothem = true; });
+        btSua.addActionListener(e -> { setKhoa(false); txtMaSP.setEnabled(false); setButton(false); cothem = false; });
+        btKLuu.addActionListener(e -> { setNull(); setKhoa(true); setButton(true); });
+        btThoat.addActionListener(e -> dispose());
+
+        btXoa.addActionListener(e -> {
+            try {
+                String ma = txtMaSP.getText();
+                if(ma.length()>0 && JOptionPane.showConfirmDialog(null, "Xóa " + ma + "?", "Hỏi", 0)==0) {
+                    sp.DeleteSanpham(ma); 
+                    ShowData(); 
+                    setNull();
+                }
+            } catch (SQLException ex) { 
+            	ex.printStackTrace(); 
+            	}
+        });
+
+        btLuu.addActionListener(e -> {
+            try {
+                String ma = txtMaSP.getText();
+                String ten = txtTenSP.getText();
+                int gia = Integer.parseInt(txtGiaban.getText());
+                String loai = cboLoaiSP.getSelectedItem().toString();
+                if (cothem) sp.InsertSanpham(ma, ten, gia, loai);
+                else sp.EditSanpham(ma, ten, gia, loai);
+                ShowData(); setKhoa(true); setButton(true);
+            } catch (Exception ex) { 
+            	JOptionPane.showMessageDialog(null, "Lỗi dữ liệu!"); 
+            }
+        });
+
+        cboLoaiSP.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                try {
+                    ResultSet rs = sp.ShowLoaiSP(cboLoaiSP.getSelectedItem().toString());
+                    if(rs.next()) txtTenloai.setText(rs.getString("Tenloai"));
+                } catch (SQLException ex) { ex.printStackTrace(); 
+                }
+            }
+        });
+
+        jTableSP.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    int r = jTableSP.getSelectedRow();
+                    ResultSet rs = sp.ShowSPTheoma(tableModel.getValueAt(r, 0).toString());
+                    if(rs.next()) {
+                        txtMaSP.setText(rs.getString("MaSP"));
+                        txtTenSP.setText(rs.getString("TenSP"));
+                        txtGiaban.setText(rs.getString("Dongia"));
+                        cboLoaiSP.setSelectedItem(rs.getString("Maloai"));
+                        txtTenloai.setText(rs.getString("Tenloai"));
+                    }
+                } catch (SQLException ex) { ex.printStackTrace(); 
+                }
+            }
+        });
+    }
+
+    public void ShowData() throws SQLException {
+        tableModel.setRowCount(0);
+        ResultSet rs = sp.ShowSanpham();
+        while(rs != null && rs.next())
+            tableModel.addRow(new Object[]{rs.getString(1), rs.getString(2), rs.getInt(3), rs.getString(5)});
+    }
+
+    public void ShowDataCombo() throws SQLException {
+        ResultSet rs = sp.ShowLoaiSP();
+        while(rs != null && rs.next()) cboLoaiSP.addItem(rs.getString("Maloai"));
+    }
+
+    private void setNull() { txtMaSP.setText(""); txtTenSP.setText(""); txtGiaban.setText(""); txtMaSP.requestFocus(); }
+    private void setKhoa(boolean a) { txtMaSP.setEnabled(!a); txtTenSP.setEnabled(!a); 
+    txtGiaban.setEnabled(!a); cboLoaiSP.setEnabled(!a); }
+    private void setButton(boolean a) { btThem.setEnabled(a); btXoa.setEnabled(a); btSua.setEnabled(a); 
+    btLuu.setEnabled(!a); btKLuu.setEnabled(!a); }
+    public static void main(String[] args) throws SQLException { new frmCapnhatSP().setVisible(true); 
+    }
+}

@@ -1,0 +1,46 @@
+package Database;
+import java.sql.*;
+import javax.swing.*;
+
+public class Connect {
+    public Connection conn = null;
+
+    
+ // Kết nối CSDL MySQL
+    public void connectSQL() throws SQLException {
+        try {
+            String userName = "root"; String password = "";
+            String url = "jdbc:mysql://localhost:3306/qlsanpham";
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            conn = DriverManager.getConnection(url, userName, password);
+        } catch (ClassNotFoundException e) {
+            JOptionPane.showMessageDialog(null, "Kết nối thất bại", "Thông báo", 1);
+        }
+    }
+
+    // Phương thức truy vấn
+    public ResultSet LoadData(String sql) { 
+        ResultSet result = null;
+        try {
+            Statement statement = conn.createStatement();
+            return statement.executeQuery(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // Phương thức thực hiện Thêm, Xóa, Sửa
+    public void UpdateData(String sql) {
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Connection getConnection() {
+        return conn;
+    }
+}

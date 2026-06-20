@@ -1,0 +1,148 @@
+package bai2;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+
+public class MainForm extends JFrame {
+    private JTable tblHoaDon;
+    private DefaultTableModel modelHoaDon;
+    private JTextField txtMaHD, txtMaNV, txtNgayLap;
+    
+    private JTable tblChiTiet;
+    private DefaultTableModel modelChiTiet;
+    private JTextField txtMaSP, txtSoLuong, txtDonGia;
+    
+    private String currentMaHD = ""; 
+
+    public MainForm() {
+        setTitle("QUẢN LÝ BÁN HÀNG");
+        setSize(875, 990);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        
+        JPanel pnlMaster = new JPanel(new BorderLayout());
+        pnlMaster.setBorder(BorderFactory.createTitledBorder("Danh Sách Hóa Đơn"));
+        
+        modelHoaDon = new DefaultTableModel(new String[]{"Mã HD", "Mã NV", "Ngày Lập", "Loại"}, 0);
+        tblHoaDon = new JTable(modelHoaDon);
+        pnlMaster.add(new JScrollPane(tblHoaDon), BorderLayout.CENTER);
+        
+        JPanel pnlInputHD = new JPanel(new GridLayout(1, 7));
+        txtMaHD = new JTextField(); txtMaNV = new JTextField(); txtNgayLap = new JTextField();
+        JButton btnThemHD = new JButton("Thêm HĐ");
+        
+        pnlInputHD.add(new JLabel("Mã HĐ:")); pnlInputHD.add(txtMaHD);
+        pnlInputHD.add(new JLabel("Mã NV:")); pnlInputHD.add(txtMaNV);
+        pnlInputHD.add(new JLabel("Ngày (YYYY-MM-DD):")); pnlInputHD.add(txtNgayLap);
+        pnlInputHD.add(btnThemHD);
+        pnlMaster.add(pnlInputHD, BorderLayout.SOUTH);
+
+        JPanel pnlDetail = new JPanel(new BorderLayout());
+        pnlDetail.setBorder(BorderFactory.createTitledBorder("Chi Tiết Sản Phẩm Của Hóa Đơn"));
+        
+        modelChiTiet = new DefaultTableModel(new String[]{"Mã SP", "Số Lượng", "Đơn Giá", "Thành Tiền"}, 0);
+        tblChiTiet = new JTable(modelChiTiet);
+        pnlDetail.add(new JScrollPane(tblChiTiet), BorderLayout.CENTER);
+        
+        JPanel pnlInputCT = new JPanel(new GridLayout(1, 7));
+        txtMaSP = new JTextField(); txtSoLuong = new JTextField(); txtDonGia = new JTextField();
+        JButton btnThemCT = new JButton("Thêm SP vào HĐ");
+        
+        pnlInputCT.add(new JLabel("Mã SP:")); pnlInputCT.add(txtMaSP);
+        pnlInputCT.add(new JLabel("Số Lượng:")); pnlInputCT.add(txtSoLuong);
+        pnlInputCT.add(new JLabel("Đơn Giá:")); pnlInputCT.add(txtDonGia);
+        pnlInputCT.add(btnThemCT);
+        pnlDetail.add(pnlInputCT, BorderLayout.SOUTH);
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pnlMaster, pnlDetail);
+        splitPane.setDividerLocation(250);
+        getContentPane().add(splitPane);
+
+        loadDataHoaDon(); 
+
+        tblHoaDon.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int row = tblHoaDon.getSelectedRow();
+                if (row >= 0) {
+                    currentMaHD = modelHoaDon.getValueAt(row, 0).toString();
+                    loadDataChiTiet(currentMaHD); 
+                }
+            }
+        });
+
+        btnThemHD.addActionListener(e -> themHoaDon());
+
+        btnThemCT.addActionListener(e -> themChiTiet());
+    }
+
+    private void loadDataHoaDon() {
+        modelHoaDon.setRowCount(0);
+        try (Connection conn = DbUtils.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM HOADON")) {
+            while (rs.next()) {
+                modelHoaDon.addRow(new Object[]{
+                    rs.getString("MaHD"), rs.getString("MaNV"), rs.getString("NgayLap"), rs.getString("LoaiHD")
+                });
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void loadDataChiTiet(String maHD) {
+        modelChiTiet.setRowCount(0);
+        String sql = "SELECT * FROM CHITIETHOADON WHERE MaHD = ?";
+        try (Connection conn = DbUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maHD);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                int sl = rs.getInt("SoLuong");
+                double gia = rs.getDouble("DonGia");
+                modelChiTiet.addRow(new Object[]{
+                    rs.getString("MaSP"), sl, gia, sl * gia
+                });
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void themHoaDon() {
+        String sql = "INSERT INTO HOADON (MaHD, MaNV, NgayLap, LoaiHD) VALUES (?, ?, ?, 'Xuat')";
+        try (Connection conn = DbUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, txtMaHD.getText());
+            ps.setString(2, txtMaNV.getText());
+            ps.setString(3, txtNgayLap.getText());
+            ps.executeUpdate();
+            loadDataHoaDon();
+            JOptionPane.showMessageDialog(this, "Thêm Hóa đơn thành công!");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi: " + e.getMessage());
+        }
+    }
+
+    private void themChiTiet() {
+        if (currentMaHD.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn Hóa đơn ở trên trước!");
+            return;
+        }
+        String sql = "INSERT INTO CHITIETHOADON (MaHD, MaSP, SoLuong, DonGia) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DbUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, currentMaHD);
+            ps.setString(2, txtMaSP.getText());
+            ps.setInt(3, Integer.parseInt(txtSoLuong.getText()));
+            ps.setDouble(4, Double.parseDouble(txtDonGia.getText()));
+            ps.executeUpdate();
+            loadDataChiTiet(currentMaHD); 
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi (Kiểm tra mã SP có tồn tại chưa): " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new MainForm().setVisible(true));
+    }
+}

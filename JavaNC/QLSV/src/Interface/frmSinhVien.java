@@ -1,0 +1,185 @@
+package Interface;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.util.ArrayList;
+import Proccess.SinhVienDAL;
+
+public class frmSinhVien extends JFrame {
+    private String currentMsLop;
+    private SinhVienDAL dal = new SinhVienDAL();
+    private DefaultTableModel model = new DefaultTableModel(new String[]{"MS SV", "Họ Tên", "Email", "Địa Chỉ"}, 0);
+    
+    private JTextField txtMa, txtTen, txtEmail, txtDiaChi;
+    private JButton btnThem, btnSua, btnXoa, btnLuu, btnHuy, btnFirst, btnPrev, btnNext, btnLast;
+    private JTable tbl;
+    private JLabel lblStatus, lblNewLabel;
+    
+    private ArrayList<Object[]> listSV = new ArrayList<>();
+    private int currentIndex = -1; 
+    private boolean isEdit = false;
+
+    // BIẾN PHÂN TRANG
+    private int rowsPerPage = 5; 
+    private int currentPage = 1;
+
+    public frmSinhVien(String msLop) {
+        this.currentMsLop = msLop;
+        setTitle("THÔNG TIN SINH VIÊN - LỚP: " + msLop);
+        setSize(750, 680);
+        getContentPane().setLayout(null);
+        setLocationRelativeTo(null);
+        
+        lblNewLabel = new JLabel("THÔNG TIN SINH VIÊN");
+        lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        lblNewLabel.setBounds(255, 25, 250, 51);
+        getContentPane().add(lblNewLabel);
+
+        // CÁC Ô NHẬP LIỆU 
+        JLabel l1 = new JLabel("Mã số SV:"); l1.setBounds(27, 100, 80, 25); getContentPane().add(l1);
+        txtMa = new JTextField(); txtMa.setBounds(117, 100, 150, 25); getContentPane().add(txtMa);
+
+        JLabel l2 = new JLabel("Họ tên:"); l2.setBounds(27, 140, 80, 25); getContentPane().add(l2);
+        txtTen = new JTextField(); txtTen.setBounds(117, 140, 300, 25); getContentPane().add(txtTen);
+
+        JLabel l3 = new JLabel("Email:"); l3.setBounds(27, 180, 80, 25); getContentPane().add(l3);
+        txtEmail = new JTextField(); txtEmail.setBounds(117, 180, 300, 25); getContentPane().add(txtEmail);
+
+        JLabel l4 = new JLabel("Địa chỉ:"); l4.setBounds(27, 220, 80, 25); getContentPane().add(l4);
+        txtDiaChi = new JTextField(); txtDiaChi.setBounds(117, 220, 300, 25); getContentPane().add(txtDiaChi);
+
+        // NÚT CHỨC NĂNG
+        btnThem = new JButton("Thêm"); btnThem.setBounds(447, 100, 80, 30); getContentPane().add(btnThem);
+        btnSua = new JButton("Sửa"); btnSua.setBounds(537, 100, 80, 30); getContentPane().add(btnSua);
+        btnXoa = new JButton("Xóa"); btnXoa.setBounds(447, 140, 80, 30); getContentPane().add(btnXoa);
+        btnLuu = new JButton("Lưu"); btnLuu.setBounds(537, 140, 80, 30); getContentPane().add(btnLuu);
+        btnHuy = new JButton("Hủy"); btnHuy.setBounds(447, 180, 170, 30); getContentPane().add(btnHuy);
+
+        // NÚT ĐIỀU HƯỚNG 
+        btnFirst = new JButton("|<"); btnFirst.setBounds(218, 260, 50, 30); getContentPane().add(btnFirst);
+        btnPrev = new JButton("<"); btnPrev.setBounds(278, 260, 50, 30); getContentPane().add(btnPrev);
+        lblStatus = new JLabel("0/0"); lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
+        lblStatus.setBounds(338, 260, 60, 30); getContentPane().add(lblStatus);
+        btnNext = new JButton(">"); btnNext.setBounds(408, 260, 50, 30); getContentPane().add(btnNext);
+        btnLast = new JButton(">|"); btnLast.setBounds(468, 260, 50, 30); getContentPane().add(btnLast);
+
+        // BẢNG DANH SÁCH (Chiều cao cố định cho 5 dòng) 
+        tbl = new JTable(model);
+        JScrollPane sc = new JScrollPane(tbl);
+        sc.setBounds(27, 310, 680, 130); // Độ cao thu nhỏ lại để vừa đúng 5 dòng
+        getContentPane().add(sc);
+
+        // XỬ LÝ LOGIC
+        loadData();
+        setControlState(true);
+
+        // Sự kiện nút bấm CRUD
+        btnThem.addActionListener(e -> { isEdit = false; setControlState(false); clearFields(); });
+        btnSua.addActionListener(e -> { isEdit = true; setControlState(false); txtMa.setEnabled(false); });
+        btnHuy.addActionListener(e -> { setControlState(true); displayCurrentSV(); });
+
+        btnLuu.addActionListener(e -> {
+            try {
+                if (isEdit) dal.update(txtMa.getText(), txtTen.getText(), txtEmail.getText(), txtDiaChi.getText(), currentMsLop);
+                else dal.insert(txtMa.getText(), txtTen.getText(), txtEmail.getText(), txtDiaChi.getText(), currentMsLop);
+                loadData(); setControlState(true);
+            } catch (SQLException ex) { JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage()); }
+        });
+
+        btnXoa.addActionListener(e -> {
+            try {
+                if(JOptionPane.showConfirmDialog(this, "Xóa SV này?") == 0) {
+                    dal.delete(txtMa.getText()); loadData();
+                }
+            } catch (SQLException ex) { ex.printStackTrace(); }
+        });
+
+        // ĐIỀU HƯỚNG VÀ PHÂN TRANG
+        btnFirst.addActionListener(e -> { currentIndex = 0; goToRecord(); });
+        btnLast.addActionListener(e -> { currentIndex = listSV.size() - 1; goToRecord(); });
+        btnPrev.addActionListener(e -> { if(currentIndex > 0) { currentIndex--; goToRecord(); } });
+        btnNext.addActionListener(e -> { if(currentIndex < listSV.size() - 1) { currentIndex++; goToRecord(); } });
+
+        // Click bảng hiện lên Textbox
+        tbl.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int rowInTable = tbl.getSelectedRow();
+                currentIndex = (currentPage - 1) * rowsPerPage + rowInTable;
+                displayCurrentSV();
+            }
+        });
+    }
+
+    private void loadData() {
+        try {
+            listSV.clear();
+            ResultSet rs = dal.getByLop(currentMsLop);
+            while(rs.next()) {
+                listSV.add(new Object[]{rs.getString("msSV"), rs.getString("hoTen"), rs.getString("email"), rs.getString("diaChi")});
+            }
+            if(listSV.size() > 0) { 
+                currentIndex = 0; 
+                goToRecord();
+            } else { 
+                currentIndex = -1; 
+                clearFields(); 
+                lblStatus.setText("0/0");
+                model.setRowCount(0);
+            }
+            
+            // Ẩn/hiện điều hướng theo yêu cầu của Vĩnh
+            boolean showNav = listSV.size() > rowsPerPage;
+            btnFirst.setVisible(showNav); btnPrev.setVisible(showNav);
+            btnNext.setVisible(showNav); btnLast.setVisible(showNav);
+            lblStatus.setVisible(showNav);
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    // Hàm đồng bộ việc nhảy bản ghi và nhảy trang
+    private void goToRecord() {
+        currentPage = (currentIndex / rowsPerPage) + 1;
+        displayTablePage();
+        displayCurrentSV();
+        updateTableSelection();
+    }
+
+    private void displayTablePage() {
+        model.setRowCount(0);
+        int start = (currentPage - 1) * rowsPerPage;
+        int end = Math.min(start + rowsPerPage, listSV.size());
+        for (int i = start; i < end; i++) {
+            model.addRow(listSV.get(i));
+        }
+    }
+
+    private void displayCurrentSV() {
+        if(currentIndex >= 0 && currentIndex < listSV.size()) {
+            Object[] sv = listSV.get(currentIndex);
+            txtMa.setText(sv[0].toString());
+            txtTen.setText(sv[1].toString());
+            txtEmail.setText(sv[2] != null ? sv[2].toString() : "");
+            txtDiaChi.setText(sv[3] != null ? sv[3].toString() : "");
+            lblStatus.setText((currentIndex + 1) + "/" + listSV.size());
+        }
+    }
+
+    private void updateTableSelection() {
+        int rowInTable = currentIndex % rowsPerPage;
+        if(rowInTable >= 0 && rowInTable < tbl.getRowCount()) {
+            tbl.setRowSelectionInterval(rowInTable, rowInTable);
+        }
+    }
+
+    private void setControlState(boolean b) {
+        txtMa.setEnabled(!b); txtTen.setEnabled(!b); txtEmail.setEnabled(!b); txtDiaChi.setEnabled(!b);
+        btnThem.setEnabled(b); btnSua.setEnabled(b); btnXoa.setEnabled(b);
+        btnLuu.setEnabled(!b); btnHuy.setEnabled(!b);
+        btnFirst.setEnabled(b); btnPrev.setEnabled(b); btnNext.setEnabled(b); btnLast.setEnabled(b);
+        tbl.setEnabled(b);
+    }
+
+    private void clearFields() { txtMa.setText(""); txtTen.setText(""); txtEmail.setText(""); txtDiaChi.setText(""); }
+}

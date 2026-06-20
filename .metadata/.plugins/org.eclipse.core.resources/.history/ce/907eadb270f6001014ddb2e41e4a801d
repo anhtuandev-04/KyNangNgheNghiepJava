@@ -1,0 +1,64 @@
+package bai3;
+
+import java.sql.Connection;
+import java.sql.Statement;
+
+public class SetupData {
+
+    public static void main(String[] args) {
+        try (Connection conn = DbConnect.getConnection();
+             Statement stmt = conn.createStatement()) {
+            System.out.println("Đang khởi tạo cơ sở dữ liệu...");
+            // 1. Bảng Tác Giả
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS tblTacGia (" +
+                    "MaTG VARCHAR(10) PRIMARY KEY, " +
+                    "TenTG VARCHAR(50), " +
+                    "DCLienHe VARCHAR(100))");
+
+            // 2. Bảng Sách
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS tblSach (" +
+                    "MaSach VARCHAR(10) PRIMARY KEY, " +
+                    "TuSach VARCHAR(100), " +
+                    "SoTrang INT, " +
+                    "MaTG VARCHAR(10), " +
+                    "NamXB INT, " +
+                    "TuKhoa VARCHAR(50), " +
+                    "NXB VARCHAR(50), " +
+                    "FOREIGN KEY (MaTG) REFERENCES tblTacGia(MaTG))");
+
+            // 3. Bảng Chi Tiết Sách
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS tblChiTietSach (" +
+                    "MaCaBiet VARCHAR(10) PRIMARY KEY, " +
+                    "MaSach VARCHAR(10), " +
+                    "TinhTrangSach TINYINT, " +
+                    "TinhTrangPhucVu TINYINT, " +
+                    "FOREIGN KEY (MaSach) REFERENCES tblSach(MaSach))");
+            
+            System.out.println("Đang chèn dữ liệu mẫu...");
+            
+            // Xóa dữ liệu cũ để tránh lỗi trùng khóa khi chạy lại
+            stmt.executeUpdate("DELETE FROM tblChiTietSach");
+            stmt.executeUpdate("DELETE FROM tblSach");
+            stmt.executeUpdate("DELETE FROM tblTacGia");
+
+            // Insert Tác Giả
+            stmt.executeUpdate("INSERT INTO tblTacGia VALUES ('TG01', 'Paulo Coelho', 'Tây Ban Nha')");
+            stmt.executeUpdate("INSERT INTO tblTacGia VALUES ('TG02', 'Viktor E. Frankl', 'Áo')");
+
+            // Insert Sách
+            stmt.executeUpdate("INSERT INTO tblSach VALUES ('S01', 'Nhà Giả Kim', 300, 'TG01', 1988, 'Văn học nước ngoài', 'Hội Nhà Văn')");
+            stmt.executeUpdate("INSERT INTO tblSach VALUES ('S02', 'Đi Tìm Lẽ Sống', 150, 'TG02', 1946, 'Tâm lý học', 'NXB Kim Dong')");
+            stmt.executeUpdate("INSERT INTO tblSach VALUES ('S03', 'Kinh Van Hoa', 500, 'TG01', 2010, 'Hoc duong', 'NXB Tre')");
+
+            // Insert Chi Tiết
+            stmt.executeUpdate("INSERT INTO tblChiTietSach VALUES ('CB01', 'S01', 1, 1)");
+            stmt.executeUpdate("INSERT INTO tblChiTietSach VALUES ('CB02', 'S01', 1, 1)");
+            stmt.executeUpdate("INSERT INTO tblChiTietSach VALUES ('CB03', 'S02', 1, 1)");
+
+            System.out.println("=== KHỞI TẠO THÀNH CÔNG! ===");
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}

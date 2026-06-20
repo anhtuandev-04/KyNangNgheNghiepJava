@@ -1,0 +1,245 @@
+package Interface;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.print.*;
+import java.sql.*;
+import Proccess.*;
+
+public class frmQuanLySanPham extends JFrame implements Printable {
+    DanhMucDAL dmDAL = new DanhMucDAL();
+    SanPhamDAL spDAL = new SanPhamDAL();
+
+    // --- Components bên TRÁI ---
+    JList<CategoryItem> listDanhMuc;
+    DefaultListModel<CategoryItem> listModel;
+    JButton btnNewDM, btnUpdateDM, btnRemoveDM;
+    JTable tblSanPham;
+    DefaultTableModel tableModel;
+    
+    // Form nhập liệu
+    JTextField txtMaSP, txtTenSP, txtDonGia, txtSoLuong, txtMoTa;
+    JComboBox<CategoryItem> cboDanhMucForm; 
+    JButton btnNewSP, btnSaveSP, btnRemoveSP;
+    
+    JMenuItem menuPrint, menuExit;
+
+    public frmQuanLySanPham() {
+        setTitle("Quản lý sản phẩm (Final) - Bài tập 3");
+        setSize(1100, 700);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        
+        // 1. MENU
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menuFile = new JMenu("File");
+        menuPrint = new JMenuItem("Print");
+        menuExit = new JMenuItem("Exit");
+        menuFile.add(menuPrint); menuFile.addSeparator(); menuFile.add(menuExit);
+        menuBar.add(menuFile); setJMenuBar(menuBar);
+
+        // 2. PANEL TRÁI (DANH MỤC)
+        JPanel pLeft = new JPanel(new BorderLayout());
+        pLeft.setBorder(BorderFactory.createTitledBorder("Danh mục sản phẩm"));
+        
+        listModel = new DefaultListModel<>();
+        listDanhMuc = new JList<>(listModel);
+        pLeft.add(new JScrollPane(listDanhMuc), BorderLayout.CENTER);
+
+        JPanel pBtnLeft = new JPanel(new GridLayout(1, 3, 5, 5));
+        btnNewDM = new JButton("New"); btnUpdateDM = new JButton("Update"); btnRemoveDM = new JButton("Remove");
+        pBtnLeft.add(btnNewDM); pBtnLeft.add(btnUpdateDM); pBtnLeft.add(btnRemoveDM);
+        pLeft.add(pBtnLeft, BorderLayout.SOUTH);
+
+        // 3. PANEL PHẢI (SẢN PHẨM)
+        JPanel pRight = new JPanel(new BorderLayout());
+
+        tableModel = new DefaultTableModel(new String[]{"Mã SP", "Tên SP", "Đơn giá", "Số lượng", "Mô tả"}, 0);
+        tblSanPham = new JTable(tableModel);
+        pRight.add(new JScrollPane(tblSanPham), BorderLayout.CENTER);
+
+        JPanel pRightBottom = new JPanel(new BorderLayout());
+        pRightBottom.setBorder(BorderFactory.createTitledBorder("Chi tiết sản phẩm"));
+        
+        JPanel pForm = new JPanel(new GridLayout(6, 2, 5, 5)); 
+        
+        pForm.add(new JLabel("Danh mục:")); 
+        cboDanhMucForm = new JComboBox<>();
+        pForm.add(cboDanhMucForm);
+
+        pForm.add(new JLabel("Mã SP:")); txtMaSP = new JTextField(); pForm.add(txtMaSP);
+        pForm.add(new JLabel("Tên SP:")); txtTenSP = new JTextField(); pForm.add(txtTenSP);
+        pForm.add(new JLabel("Đơn giá:")); txtDonGia = new JTextField(); pForm.add(txtDonGia);
+        pForm.add(new JLabel("Số lượng:")); txtSoLuong = new JTextField(); pForm.add(txtSoLuong);
+        pForm.add(new JLabel("Mô tả:")); txtMoTa = new JTextField(); pForm.add(txtMoTa);
+        
+        JPanel pBtnRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        btnNewSP = new JButton("New"); btnSaveSP = new JButton("Save"); btnRemoveSP = new JButton("Remove");
+        pBtnRight.add(btnNewSP); pBtnRight.add(btnSaveSP); pBtnRight.add(btnRemoveSP);
+
+        pRightBottom.add(pForm, BorderLayout.CENTER);
+        pRightBottom.add(pBtnRight, BorderLayout.SOUTH);
+        pRight.add(pRightBottom, BorderLayout.SOUTH);
+
+        // 4. SPLIT PANE
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pLeft, pRight);
+        splitPane.setDividerLocation(280);
+        getContentPane().add(splitPane);
+
+        // 5. LOAD DATA & EVENTS
+        loadDataDanhMuc();
+        addEvents();
+    }
+
+    private void loadDataDanhMuc() {
+        try {
+            listModel.clear();
+            cboDanhMucForm.removeAllItems();
+            
+            ResultSet rs = dmDAL.getAll();
+            while(rs.next()) {
+                CategoryItem item = new CategoryItem(rs.getString("MaDM"), rs.getString("TenDM"));
+                listModel.addElement(item);
+                cboDanhMucForm.addItem(item); 
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void loadDataSanPham(String maDM) {
+        try {
+            tableModel.setRowCount(0);
+            ResultSet rs = spDAL.getByDanhMuc(maDM);
+            while(rs.next()) {
+                tableModel.addRow(new Object[]{
+                    rs.getString("MaSP"), rs.getString("TenSP"), 
+                    rs.getDouble("DonGia"), rs.getInt("SoLuong"), 
+                    rs.getString("MoTa") 
+                });
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void addEvents() {
+        // Exit & Print
+        menuExit.addActionListener(e -> {
+            if(JOptionPane.showConfirmDialog(this, "Thoát chương trình?", "Hỏi", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) System.exit(0);
+        });
+        menuPrint.addActionListener(e -> {
+            PrinterJob job = PrinterJob.getPrinterJob();
+            job.setPrintable(this);
+            if (job.printDialog()) { try { job.print(); } catch (PrinterException ex) { ex.printStackTrace(); } }
+        });
+
+        listDanhMuc.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && listDanhMuc.getSelectedValue() != null) {
+                CategoryItem item = listDanhMuc.getSelectedValue();
+                loadDataSanPham(item.getId());
+                
+                for (int i = 0; i < cboDanhMucForm.getItemCount(); i++) {
+                    if(cboDanhMucForm.getItemAt(i).getId().equals(item.getId())) { cboDanhMucForm.setSelectedIndex(i); break; }
+                }
+            }
+        });
+
+        tblSanPham.getSelectionModel().addListSelectionListener(e -> {
+            int row = tblSanPham.getSelectedRow();
+            if(row >= 0) {
+                txtMaSP.setText(tblSanPham.getValueAt(row, 0).toString());
+                txtTenSP.setText(tblSanPham.getValueAt(row, 1).toString());
+                txtDonGia.setText(tblSanPham.getValueAt(row, 2).toString());
+                txtSoLuong.setText(tblSanPham.getValueAt(row, 3).toString());
+                Object mt = tblSanPham.getValueAt(row, 4);
+                txtMoTa.setText(mt != null ? mt.toString() : "");
+            }
+        });
+
+        // Nút New SP
+        btnNewSP.addActionListener(e -> {
+            txtMaSP.setText(""); txtTenSP.setText(""); txtDonGia.setText(""); 
+            txtSoLuong.setText(""); txtMoTa.setText("");
+            txtMaSP.requestFocus(); tblSanPham.clearSelection();
+        });
+
+        btnSaveSP.addActionListener(e -> {
+            try {
+                String ma = txtMaSP.getText();
+                String ten = txtTenSP.getText();
+                double gia = Double.parseDouble(txtDonGia.getText());
+                int sl = Integer.parseInt(txtSoLuong.getText());
+                String mota = txtMoTa.getText();
+
+                CategoryItem selectedItem = (CategoryItem) cboDanhMucForm.getSelectedItem();
+                String maDM = selectedItem.getId();
+                
+                if(spDAL.exists(ma)) {
+                    spDAL.update(ma, ten, gia, sl, maDM, mota);
+                    JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
+                } else {
+                    spDAL.insert(ma, ten, gia, sl, maDM, mota);
+                    JOptionPane.showMessageDialog(this, "Thêm mới thành công!");
+                }
+                
+            } catch (Exception ex) { 
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Lỗi nhập liệu: " + ex.getMessage()); 
+            }
+        });
+
+        btnNewDM.addActionListener(e -> {
+            String ma = JOptionPane.showInputDialog("Mã DM:"); String ten = JOptionPane.showInputDialog("Tên DM:");
+            if(ma!=null && ten!=null) { dmDAL.insert(ma, ten); loadDataDanhMuc(); }
+        });
+        
+        btnUpdateDM.addActionListener(e -> {
+            CategoryItem i = listDanhMuc.getSelectedValue();
+            if(i!=null) { String n = JOptionPane.showInputDialog("Tên mới:", i.getName()); if(n!=null) {dmDAL.update(i.getId(), n); loadDataDanhMuc();} }
+        });
+
+        btnRemoveDM.addActionListener(e -> {
+            CategoryItem i = listDanhMuc.getSelectedValue();
+            if(i!=null) {
+                try {
+                    if(dmDAL.hasProducts(i.getId())) {
+                        if(JOptionPane.showConfirmDialog(this, "Xóa hết SP con?", "Cảnh báo", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION) {
+                            dmDAL.deleteAllProductsInDM(i.getId()); dmDAL.delete(i.getId()); loadDataDanhMuc(); tableModel.setRowCount(0);
+                        }
+                    } else { dmDAL.delete(i.getId()); loadDataDanhMuc(); }
+                } catch(Exception ex) { ex.printStackTrace(); }
+            }
+        });
+
+        btnRemoveSP.addActionListener(e -> {
+            String ma = txtMaSP.getText();
+            if(!ma.isEmpty() && JOptionPane.showConfirmDialog(this, "Xóa SP?")==JOptionPane.YES_OPTION) {
+                spDAL.delete(ma);
+            }
+        });
+        
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                if (JOptionPane.showConfirmDialog(frmQuanLySanPham.this, 
+                    "Bạn có chắc chắn muốn thoát không?", "Thông báo", 
+                    JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }
+            }
+        });
+    }
+
+    @Override
+    public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException {
+        if (pageIndex > 0) return NO_SUCH_PAGE;
+        Graphics2D g2d = (Graphics2D) graphics;
+        g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+        g2d.drawString("DANH SÁCH SẢN PHẨM", 100, 50);
+        g2d.translate(0, 70); 
+        tblSanPham.print(g2d);
+        return PAGE_EXISTS;
+    }
+
+    public static void main(String[] args) {
+        new frmQuanLySanPham().setVisible(true);
+    }
+}

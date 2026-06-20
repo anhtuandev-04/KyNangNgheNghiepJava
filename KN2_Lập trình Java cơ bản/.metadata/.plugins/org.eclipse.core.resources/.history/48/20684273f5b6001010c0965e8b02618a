@@ -1,0 +1,48 @@
+
+
+import java.util.Scanner;
+
+public class GiaiPTBac2 {
+	public static void main(String[] args) {
+		Scanner scanner = new Scanner(System.in);
+		
+		System.out.println("Giai PT bac 2: ax^2 + bx + c = 0");
+		
+		System.out.println("Nhap so a: ");
+		double a = scanner.nextDouble();
+		
+		System.out.println("Nhap so b: ");
+		double b = scanner.nextDouble();
+		
+		System.out.println("Nhap so c: ");
+		double c = scanner.nextDouble();
+		
+		scanner.close();
+		
+		if (a==0) {
+			if (b==0) {
+				if (c==0) {
+					System.out.println("Phuong trinh vo so nghiem!");
+				} else {
+					System.out.println("Phuong trinh vo nghiem!");
+				}
+			} else {
+				double x = -c/b;
+				System.out.printf("Phuong trinh co nghiem duy nhat: x = %.4f%n", x);
+			}
+			return;
+		}
+		double delta = b*b-4*a*c;
+		if (delta<0) {
+			System.out.println("Phuong trinh vo nghiem thuc!");
+		} else if (delta==0) {
+			double x = -b/(2*a);
+			System.out.printf("Phuong trinh co nghiem kep x1 = x2 = %.4f%n", x);
+		} else {
+			double x1 = (-b+Math.sqrt(delta))/(2*a);
+			double x2 = (-b-Math.sqrt(delta))/(2*a);
+			System.out.printf("x1 = %.4f%n", x1);
+			System.out.printf("x2 = %.4f%n", x2);
+		}
+	}
+}

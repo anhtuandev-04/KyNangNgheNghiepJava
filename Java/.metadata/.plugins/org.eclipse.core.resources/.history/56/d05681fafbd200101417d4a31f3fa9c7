@@ -1,0 +1,83 @@
+// Trương Anh Tuấn 220616
+package person;
+
+import java.util.Scanner;
+
+public class testperson {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("====================================");
+        System.out.println("        NHẬP THÔNG TIN PERSON        ");
+        System.out.println("====================================\n");
+
+        // ========== 1. Nhập STUDENT ==========
+        System.out.println(">>> NHẬP THÔNG TIN STUDENT");
+
+        System.out.print("Tên (Name): ");
+        String sName = scanner.nextLine();
+
+        System.out.print("Địa chỉ (Address): ");
+        String sAddress = scanner.nextLine();
+
+        System.out.print("Chương trình học (Program): ");
+        String sProgram = scanner.nextLine();
+
+        System.out.print("Năm học (Year) [int]: ");
+        int sYear = 1;
+        if (scanner.hasNextInt()) {
+            sYear = scanner.nextInt();
+        } else {
+            System.out.println("⚠ Năm học không hợp lệ → dùng mặc định = 1.");
+            scanner.next();
+        }
+
+        System.out.print("Điểm số (Score) [double]: ");
+        double sScore = 0.0;
+        if (scanner.hasNextDouble()) {
+            sScore = scanner.nextDouble();
+        } else {
+            System.out.println("⚠ Điểm số không hợp lệ → dùng mặc định = 0.0.");
+            scanner.next();
+        }
+
+        scanner.nextLine(); 
+
+        student userStudent = new student(sName, sAddress, sProgram, sYear, sScore);
+
+        System.out.println("\n------------------------------------");
+        System.out.println("✔ STUDENT ĐÃ TẠO:");
+        System.out.println(userStudent);
+        System.out.println("------------------------------------\n");
+
+        // ========== 2. Nhập STAFF ==========
+        System.out.println(">>> NHẬP THÔNG TIN STAFF");
+
+        System.out.print("Tên (Name): ");
+        String fName = scanner.nextLine();
+
+        System.out.print("Địa chỉ (Address): ");
+        String fAddress = scanner.nextLine();
+
+        System.out.print("Trường (School): ");
+        String fSchool = scanner.nextLine();
+
+        System.out.print("Lương (Salary) [double]: ");
+        double fSalary = 0.0;
+        if (scanner.hasNextDouble()) {
+            fSalary = scanner.nextDouble();
+        } else {
+            System.out.println("⚠ Lương không hợp lệ → dùng mặc định = 0.0.");
+            scanner.next();
+        }
+
+        staff userStaff = new staff(fName, fAddress, fSchool, fSalary);
+
+        System.out.println("\n------------------------------------");
+        System.out.println("✔ STAFF ĐÃ TẠO:");
+        System.out.println(userStaff);
+        System.out.println("------------------------------------\n");
+
+        scanner.close();
+    }
+}

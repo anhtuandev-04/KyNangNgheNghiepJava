@@ -1,0 +1,39 @@
+//Trương Anh Tuấn 220616
+package quanlyhinhtron;
+
+public class cylinder extends circle {
+    private double height;
+
+    public cylinder() {
+        super();
+        this.height = 1.0;
+    }
+
+    public cylinder(double radius, String color, double height) {
+        super(radius, color);
+        this.height = height;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
+
+    public double getVolume() {
+        return super.getArea() * height;
+    }
+
+    @Override
+    public String toString() {
+        String circleInfo = super.toString();
+        circleInfo = circleInfo.substring(circleInfo.indexOf("[") + 1, circleInfo.lastIndexOf("]"));
+
+        return "Cylinder[" + circleInfo +
+               ", height=" + String.format("%.2f", height) +
+               ", volume=" + String.format("%.2f", getVolume()) +
+               ']';
+    }
+}

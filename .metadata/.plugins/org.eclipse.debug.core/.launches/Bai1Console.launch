@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+        <listEntry value="/QLSPb1M4/src/bai1/Bai1Console.java"/>
+    </listAttribute>
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+        <listEntry value="1"/>
+    </listAttribute>
+    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_EXCLUDE_TEST_CODE" value="true"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="bai1.Bai1Console"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MODULE_NAME" value="QLSanPham_M4_B1"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="QLSPb1M4"/>
+</launchConfiguration>

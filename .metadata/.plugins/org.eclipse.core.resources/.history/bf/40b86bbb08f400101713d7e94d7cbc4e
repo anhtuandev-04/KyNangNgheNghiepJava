@@ -1,0 +1,132 @@
+package Interface;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import Proccess.LoaiSP; // Import lớp nghiệp vụ
+
+public class frmSPTheoLoai extends JFrame {
+
+    private static final long serialVersionUID = 1L;
+    private JPanel contentPane;
+    private JComboBox<String> cboLoaiSP;
+    private JTable jTableSanpham;
+    private DefaultTableModel tableModel = new DefaultTableModel();
+    private LoaiSP lsp = new LoaiSP(); // Khởi tạo lớp nghiệp vụ
+
+    /**
+     * Launch the application.
+     */
+    public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    frmSPTheoLoai frame = new frmSPTheoLoai();
+                    frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    /**
+     * Create the frame.
+     */
+    public frmSPTheoLoai() {
+        setTitle("Sản phẩm theo loại - 221576 - Đinh Trung Vĩnh");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setBounds(100, 100, 600, 400);
+        contentPane = new JPanel();
+        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+        setContentPane(contentPane);
+        contentPane.setLayout(null);
+        setLocationRelativeTo(null);
+
+        // Label
+        JLabel lblTitle = new JLabel("CHỌN LOẠI SẢN PHẨM");
+        lblTitle.setFont(new Font("Tahoma", Font.BOLD, 14));
+        lblTitle.setBounds(200, 11, 200, 25);
+        contentPane.add(lblTitle);
+
+        JLabel lblChon = new JLabel("Chọn mã loại:");
+        lblChon.setBounds(30, 60, 65, 25);
+        contentPane.add(lblChon);
+
+        // Combobox
+        cboLoaiSP = new JComboBox<>();
+        cboLoaiSP.setBounds(105, 60, 150, 25);
+        contentPane.add(cboLoaiSP);
+
+        // JTable để hiển thị sản phẩm
+        jTableSanpham = new JTable(tableModel);
+        String[] colsName = {"Mã SP", "Tên sản phẩm", "Giá bán", "Loại"};
+        tableModel.setColumnIdentifiers(colsName);
+        
+        JScrollPane scrollPane = new JScrollPane(jTableSanpham);
+        scrollPane.setBounds(30, 110, 520, 200);
+        contentPane.add(scrollPane);
+
+        // Nút Thoát
+        JButton btnThoat = new JButton("Thoát");
+        btnThoat.setBounds(234, 321, 90, 30);
+        contentPane.add(btnThoat);
+        btnThoat.addActionListener(e -> dispose());
+
+        // --- XỬ LÝ DỮ LIỆU ---
+        
+        // 1. Đổ dữ liệu vào Combobox khi load form
+        ShowDataCombo();
+
+        // 2. Sự kiện khi chọn item trong Combobox
+        cboLoaiSP.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    String ml = cboLoaiSP.getSelectedItem().toString();
+                    try {
+                        ShowData(ml);
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
+    // Hàm đổ dữ liệu mã loại vào Combobox
+    public final void ShowDataCombo() {
+        try {
+            ResultSet result = lsp.ShowLoaiSP();
+            while (result != null && result.next()) {
+                cboLoaiSP.addItem(result.getString("Maloai"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Hàm hiển thị sản phẩm theo mã loại được chọn
+    public final void ShowData(String ml) throws SQLException {
+        ResultSet result = lsp.ShowSPTheoloai(ml); // Gọi hàm trong lớp LoaiSP
+        try {
+            ClearData(); // Xóa dữ liệu cũ trên bảng
+            while (result != null && result.next()) {
+                String rows[] = new String[4];
+                rows[0] = result.getString(1); // MaSP
+                rows[1] = result.getString(2); // TenSP
+                rows[2] = result.getString(3); // Dongia
+                rows[3] = result.getString(4); // Tenloai
+                tableModel.addRow(rows);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Hàm xóa dữ liệu trong tableModel
+    public void ClearData() {
+        tableModel.setRowCount(0);
+    }
+}

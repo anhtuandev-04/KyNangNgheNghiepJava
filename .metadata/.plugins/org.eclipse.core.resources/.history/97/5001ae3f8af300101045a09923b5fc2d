@@ -1,0 +1,57 @@
+package Interface;
+import java.awt.*;
+import java.sql.*;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import Proccess.Sanpham;
+
+public class frmTimkiemsanpham extends JFrame {
+    private Sanpham sp = new Sanpham();
+    private DefaultTableModel model = new DefaultTableModel(new String[]{"Mã SP", "Tên SP", "Giá", "Loại"}, 0);
+    private JTextField txtTen, txtGiaTu, txtGiaDen;
+    private JRadioButton rdTen, rdGia;
+
+    public frmTimsanpham() {
+        setTitle("Tìm Kiếm Sản Phẩm");
+        setSize(600, 477);
+        getContentPane().setLayout(null);
+        setLocationRelativeTo(null);
+
+        JPanel p = new JPanel(); p.setBorder(BorderFactory.createTitledBorder("Tiêu chí tìm kiếm"));
+        p.setBounds(20, 37, 540, 100); p.setLayout(null); getContentPane().add(p);
+
+        rdTen = new JRadioButton("Theo tên:"); rdTen.setBounds(10, 20, 100, 25); p.add(rdTen);
+        txtTen = new JTextField(); txtTen.setBounds(110, 20, 150, 25); p.add(txtTen);
+
+        rdGia = new JRadioButton("Theo giá từ:"); rdGia.setBounds(10, 60, 100, 25); p.add(rdGia);
+        txtGiaTu = new JTextField(); txtGiaTu.setBounds(110, 60, 80, 25); p.add(txtGiaTu);
+        p.add(new JLabel("đến")).setBounds(200, 60, 30, 25);
+        txtGiaDen = new JTextField(); txtGiaDen.setBounds(225, 60, 80, 25); p.add(txtGiaDen);
+
+        ButtonGroup g = new ButtonGroup(); g.add(rdTen); g.add(rdGia); rdTen.setSelected(true);
+
+        JButton btnTim = new JButton("Tìm kiếm"); btnTim.setBounds(430, 57, 100, 30); p.add(btnTim);
+        
+        JTable tbl = new JTable(model);
+        JScrollPane sc = new JScrollPane(tbl); sc.setBounds(20, 148, 540, 250); getContentPane().add(sc);
+ 
+ JLabel lblNewLabel_1 = new JLabel("TÌM KIẾM SẢN PHẨM");
+ lblNewLabel_1.setFont(new Font("Tahoma", Font.BOLD, 15));
+ lblNewLabel_1.setBounds(211, 11, 162, 32);
+ getContentPane().add(lblNewLabel_1);
+
+        btnTim.addActionListener(e -> {
+            try {
+                ResultSet rs = null;
+                if(rdTen.isSelected()) rs = sp.ShowSPTheoten(txtTen.getText());
+                else rs = sp.ShowSPTheogia(Integer.parseInt(txtGiaTu.getText()), Integer.parseInt(txtGiaDen.getText()));
+                
+                model.setRowCount(0);
+                while(rs != null && rs.next()) 
+                    model.addRow(new Object[]{rs.getString(1), rs.getString(2), rs.getInt(3), rs.getString(5)});
+            } catch (Exception ex) { JOptionPane.showMessageDialog(null, "Lỗi tìm kiếm!"); }
+        });
+    }
+
+    public static void main(String[] args) { new frmTimsanpham().setVisible(true); }
+}

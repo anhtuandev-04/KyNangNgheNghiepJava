@@ -1,0 +1,135 @@
+package Interface;
+
+import java.sql.*;
+import Proccess.Library;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.event.*;
+
+public class frmPublisher extends JFrame {
+    private final Library lib = new Library();
+    private final DefaultTableModel tableModel = new DefaultTableModel();
+    private boolean cothem = true;
+    private int currentRow = -1;
+
+    private JTextField txtCode, txtName, txtAddr, txtPhone;
+    private JButton btnPrev, btnNext, btnAdd, btnSave, btnEdit, btnDelete, btnSearch;
+    private JLabel lblStatus;
+    private JTable tblPub;
+
+    public frmPublisher() {
+        setTitle("THÔNG TIN NHÀ XUẤT BẢN");
+        setSize(850, 650);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(null);
+
+        JPanel pnlInfo = new JPanel(null);
+        pnlInfo.setBorder(BorderFactory.createTitledBorder("Thông tin chi tiết"));
+        pnlInfo.setBounds(20, 20, 600, 230); add(pnlInfo);
+
+        pnlInfo.add(new JLabel("Mã nhà xuất bản:")).setBounds(20, 30, 120, 25);
+        txtCode = new JTextField(); txtCode.setBounds(150, 30, 400, 25); pnlInfo.add(txtCode);
+        
+        pnlInfo.add(new JLabel("Tên nhà xuất bản:")).setBounds(20, 70, 120, 25);
+        txtName = new JTextField(); txtName.setBounds(150, 70, 400, 25); pnlInfo.add(txtName);
+
+        pnlInfo.add(new JLabel("Địa chỉ:")).setBounds(20, 110, 120, 25);
+        txtAddr = new JTextField(); txtAddr.setBounds(150, 110, 400, 25); pnlInfo.add(txtAddr);
+
+        pnlInfo.add(new JLabel("Điện thoại:")).setBounds(20, 150, 120, 25);
+        txtPhone = new JTextField(); txtPhone.setBounds(150, 150, 400, 25); pnlInfo.add(txtPhone);
+
+        btnPrev = new JButton("Về trước"); btnPrev.setBounds(150, 190, 100, 25); pnlInfo.add(btnPrev);
+        lblStatus = new JLabel("0/0", JLabel.CENTER); lblStatus.setBounds(260, 190, 50, 25); pnlInfo.add(lblStatus);
+        btnNext = new JButton("Về sau"); btnNext.setBounds(320, 190, 100, 25); pnlInfo.add(btnNext);
+
+        JPanel pnlActions = new JPanel(null);
+        pnlActions.setBorder(BorderFactory.createTitledBorder("Thực hiện"));
+        pnlActions.setBounds(630, 20, 180, 230); add(pnlActions);
+
+        btnAdd = new JButton("Thêm"); btnAdd.setBounds(40, 30, 100, 35); pnlActions.add(btnAdd);
+        btnSave = new JButton("Lưu"); btnSave.setBounds(40, 75, 100, 35); pnlActions.add(btnSave);
+        btnEdit = new JButton("Sửa"); btnEdit.setBounds(40, 120, 100, 35); pnlActions.add(btnEdit);
+        btnDelete = new JButton("Xóa"); btnDelete.setBounds(40, 165, 100, 35); pnlActions.add(btnDelete);
+
+        tblPub = new JTable(tableModel);
+        tableModel.setColumnIdentifiers(new String[]{"Mã NXB", "Tên NXB", "Địa chỉ", "Điện thoại"});
+        JScrollPane sp = new JScrollPane(tblPub);
+        sp.setBounds(20, 270, 790, 200); add(sp);
+
+        btnSearch = new JButton("Tìm kiếm"); btnSearch.setBounds(20, 500, 120, 40); add(btnSearch);
+
+        loadData();
+        setKhoa(true);
+
+        btnPrev.addActionListener(e -> navigate(currentRow - 1));
+        btnNext.addActionListener(e -> navigate(currentRow + 1));
+
+        btnAdd.addActionListener(e -> {
+            setNull(); setKhoa(false); cothem = true;
+        });
+
+        btnEdit.addActionListener(e -> {
+            if(txtCode.getText().isEmpty()) return;
+            setKhoa(false); txtCode.setEnabled(false); cothem = false;
+        });
+
+        btnDelete.addActionListener(e -> {
+            String code = txtCode.getText();
+            if(code.isEmpty()) return;
+            try {
+                if(JOptionPane.showConfirmDialog(null, "Xóa NXB " + code + "?", "Xác nhận", 0) == 0) {
+                    lib.DeletePublisher(code); loadData(); setNull();
+                }
+            } catch (SQLException ex) { JOptionPane.showMessageDialog(null, "Không thể xóa (có thể do ràng buộc sách)!"); }
+        });
+
+        btnSave.addActionListener(e -> {
+            try {
+                if(cothem) lib.InsertPublisher(txtCode.getText(), txtName.getText(), txtAddr.getText(), txtPhone.getText());
+                else lib.EditPublisher(txtCode.getText(), txtName.getText(), txtAddr.getText(), txtPhone.getText());
+                loadData(); setKhoa(true);
+            } catch (SQLException ex) { ex.printStackTrace(); }
+        });
+
+        btnSearch.addActionListener(e -> new frmSearch().setVisible(true));
+
+        tblPub.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { navigate(tblPub.getSelectedRow()); }
+        });
+    }
+
+    private void loadData() {
+        try {
+            tableModel.setRowCount(0);
+            ResultSet rs = lib.ShowPublisher();
+            while(rs != null && rs.next()) {
+                tableModel.addRow(new String[]{rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)});
+            }
+            if(tableModel.getRowCount() > 0) navigate(0);
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    private void navigate(int row) {
+        if(row >= 0 && row < tableModel.getRowCount()) {
+            currentRow = row;
+            txtCode.setText(tableModel.getValueAt(row, 0).toString());
+            txtName.setText(tableModel.getValueAt(row, 1).toString());
+            txtAddr.setText(tableModel.getValueAt(row, 2).toString());
+            txtPhone.setText(tableModel.getValueAt(row, 3).toString());
+            lblStatus.setText((currentRow + 1) + "/" + tableModel.getRowCount());
+            tblPub.setRowSelectionInterval(row, row);
+        }
+    }
+
+    private void setNull() {
+        txtCode.setText(""); txtName.setText(""); txtAddr.setText(""); txtPhone.setText(""); txtCode.requestFocus();
+    }
+
+    private void setKhoa(boolean a) {
+        txtCode.setEnabled(!a); txtName.setEnabled(!a); txtAddr.setEnabled(!a); txtPhone.setEnabled(!a);
+        btnSave.setEnabled(!a); btnAdd.setEnabled(a); btnEdit.setEnabled(a); btnDelete.setEnabled(a);
+    }
+
+    public static void main(String[] args) { new frmPublisher().setVisible(true); }
+}

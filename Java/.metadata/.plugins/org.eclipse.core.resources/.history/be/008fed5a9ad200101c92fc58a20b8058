@@ -1,0 +1,34 @@
+// Trương Anh Tuấn 220616
+package quanlyhinhtron;
+
+import java.util.ArrayList;
+
+public class testcircle {
+    public static void main(String[] args) {
+
+        System.out.println("=== THÔNG TIN HÌNH HỌC (getArea) ===");
+
+        ArrayList<circle> shapes = new ArrayList<>();
+
+        // Giữ nguyên cách khởi tạo theo yêu cầu
+        shapes.add(new circle(1.5, "Blue"));
+        shapes.add(new cylinder(1.0, "Green", 3.0));
+        shapes.add(new circle(2.5, "Red"));
+
+        int index = 1;
+
+        for (circle shape : shapes) {
+            System.out.println(index++ + ". " + shape);
+
+            System.out.printf("   → Diện tích đáy: %.2f%n", shape.getArea());
+
+            // Nếu là cylinder thì hiển thị thêm thể tích
+            if (shape instanceof cylinder) {
+                cylinder c = (cylinder) shape;
+                System.out.printf("   → Thể tích (Volume): %.2f%n", c.getVolume());
+            }
+
+            System.out.println();
+        }
+    }
+}

@@ -1,0 +1,36 @@
+package Proccess;
+
+import java.sql.*;
+import Database.Connect;
+
+public class Library {
+    public Connect cn = new Connect();
+
+    public ResultSet ShowPublisher() throws SQLException {
+        cn.connectSQL();
+        return cn.LoadData("SELECT * FROM tblPublisher");
+    }
+
+    public void InsertPublisher(String code, String name, String addr, String phone) throws SQLException {
+        String sql = "INSERT INTO tblPublisher VALUES('" + code + "','" + name + "','" + addr + "','" + phone + "')";
+        cn.UpdateData(sql);
+    }
+
+    public void EditPublisher(String code, String name, String addr, String phone) throws SQLException {
+        String sql = "UPDATE tblPublisher SET PublisherName='" + name + "', Address='" + addr + 
+                     "', Phone='" + phone + "' WHERE PublisherCode='" + code + "'";
+        cn.UpdateData(sql);
+    }
+
+    public void DeletePublisher(String code) throws SQLException {
+        String sql = "DELETE FROM tblPublisher WHERE PublisherCode='" + code + "'";
+        cn.UpdateData(sql);
+    }
+    
+    public ResultSet SearchBooksByPublisher(String code) throws SQLException {
+        cn.connectSQL();
+        String sql = "SELECT BookCode, BookName, PublisherCode FROM tblBook " +
+                     "WHERE PublisherCode LIKE '%" + code + "%'";
+        return cn.LoadData(sql);
+    }
+}

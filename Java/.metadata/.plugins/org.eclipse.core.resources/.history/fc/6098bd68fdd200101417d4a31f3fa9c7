@@ -1,0 +1,37 @@
+// Trương Anh Tuấn 220616
+package person;
+
+import java.util.Scanner;
+
+public class testperson {
+
+    public static void main(String[] args) {
+
+        student st = new student("Trương Anh Tuấn", "Đồng Tháp", "IT", 4, 7.8);
+
+        System.out.println("========================================");
+        System.out.println("         THÔNG TIN SINH VIÊN");
+        System.out.println("========================================");
+        System.out.printf("%-20s: %s%n", "Tên", st.getName());
+        System.out.printf("%-20s: %s%n", "Địa chỉ", st.getAddress());
+        System.out.printf("%-20s: %s%n", "Chương trình học", st.getProgram());
+        System.out.printf("%-20s: %d%n", "Năm học", st.getYear());
+        System.out.printf("%-20s: %.2f%n", "Điểm", st.getScore());
+        System.out.printf("%-20s: %s%n", "Xếp loại", st.getRating());
+        System.out.println("========================================\n");
+
+        staff sf = new staff("Bùi Thị Diễm Trinh", "Cần Thơ", "DNC", 18000000);
+
+        System.out.println("========================================");
+        System.out.println("         THÔNG TIN NHÂN VIÊN");
+        System.out.println("========================================");
+        System.out.printf("%-20s: %s%n", "Tên", sf.getName());
+        System.out.printf("%-20s: %s%n", "Địa chỉ", sf.getAddress());
+        System.out.printf("%-20s: %s%n", "Trường", sf.getSchool());
+        System.out.printf("%-20s: %,d VNĐ%n", "Mức lương cũ", (long) sf.getSalary());
+
+        double newSalary = sf.upToSalary(10);
+        System.out.printf("%-20s: %,d VNĐ%n", "Lương sau khi tăng 10%", (long) newSalary);
+        System.out.println("========================================");
+    }
+}

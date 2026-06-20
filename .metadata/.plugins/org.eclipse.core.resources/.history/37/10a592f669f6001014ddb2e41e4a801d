@@ -1,0 +1,62 @@
+package bai1;
+
+import java.sql.*;
+import java.util.Scanner;
+
+public class Bai1Console {
+    public static void hienThiSanPham() {
+        String sql = "SELECT sp.MaSP, sp.TenSP, lsp.TenLoaiSP " +
+                     "FROM SanPham sp " +
+                     "JOIN LoaiSanPham lsp ON sp.MaLoaiSP = lsp.MaLoaiSP";
+        
+        try (Connection conn = DbUtils.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            System.out.println("=== DANH SÁCH SẢN PHẨM ===");
+            System.out.printf("%-10s %-20s %-20s\n", "Mã SP", "Tên SP", "Loại SP");
+            System.out.println("--------------------------------------------------");
+            
+            while (rs.next()) {
+                String ma = rs.getString("MaSP");
+                String ten = rs.getString("TenSP");
+                String loai = rs.getString("TenLoaiSP");
+                System.out.printf("%-10s %-20s %-20s\n", ma, ten, loai);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void themLoaiSanPham() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("\n=== THÊM LOẠI SẢN PHẨM ===");
+        System.out.print("Nhập mã loại: ");
+        String maLoai = sc.nextLine();
+        System.out.print("Nhập tên loại: ");
+        String tenLoai = sc.nextLine();
+
+        String sql = "INSERT INTO LoaiSanPham VALUES (?, ?)";
+
+        try (Connection conn = DbUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, maLoai);
+            ps.setString(2, tenLoai);
+            
+            int result = ps.executeUpdate();
+            if (result > 0) {
+                System.out.println("Thêm thành công!");
+            } else {
+                System.out.println("Thêm thất bại!");
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi: " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        hienThiSanPham();
+        themLoaiSanPham();
+    }
+}

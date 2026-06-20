@@ -1,0 +1,35 @@
+package Database;
+import java.sql.*;
+import javax.swing.JOptionPane;
+
+public class Connect {
+    public Connection conn = null;
+    public void connectSQL() {
+    	try {
+            if (conn != null && !conn.isClosed()) return;
+            String url = "jdbc:mysql://localhost:3306/student_db";
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            conn = DriverManager.getConnection(url, "root", ""); 
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Lỗi kết nối: " + e.getMessage());
+        }
+    }
+
+    public ResultSet LoadData(String sql) {
+        try {
+            Statement statement = conn.createStatement();
+            return statement.executeQuery(sql);
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    public void UpdateData(String sql) {
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
